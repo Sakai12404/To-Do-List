@@ -2,22 +2,37 @@ name: Build iOS App
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
+  workflow_dispatch:   # allows manual trigger
 
 jobs:
   build-ios:
     runs-on: macos-11
 
-    
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Cache Flutter Pub packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v3
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.8.1' # Adjust to match your project
+          flutter-version: '3.8.1'
 
       - name: Install dependencies
         run: flutter pub get
@@ -30,7 +45,7 @@ jobs:
           mkdir -p output
           cp -r build/ios/iphoneos/Runner.app output/
 
-      - name: Upload iOS build
+      - name: Upload iOS build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-app
