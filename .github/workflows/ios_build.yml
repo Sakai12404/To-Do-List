@@ -18,9 +18,13 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.8.2'  # Ensure you're using the correct version
+          flutter-version: 3.8.2
           channel: stable
-          architecture: ARM64  # This is correct if you're building for ARM architecture (most modern Macs)
+          architecture: ARM64
+          cache: false
+          pub-cache-path: default
+          dry-run: false
+          git-source: https://github.com/flutter/flutter.git
           
       - name: Install dependencies
         run: flutter pub get
