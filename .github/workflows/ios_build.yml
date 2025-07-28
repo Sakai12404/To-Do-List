@@ -5,35 +5,23 @@ on:
     branches:
       - main
   pull_request:
-  workflow_dispatch:   # allows manual trigger
+  workflow_dispatch:  # allows manual trigger
 
 jobs:
   build-ios:
-    runs-on: macos-latest
+    runs-on: macos-latest  # Use the latest macOS version
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Cache Flutter Pub packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
-
-      - name: Cache CocoaPods
-        uses: actions/cache@v3
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.8.1'
-
+          flutter-version: '3.8.1'  # Ensure you're using the correct version
+          channel: stable
+          architecture: ARM64  # This is correct if you're building for ARM architecture (most modern Macs)
+          
       - name: Install dependencies
         run: flutter pub get
 
