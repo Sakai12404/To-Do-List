@@ -30,6 +30,7 @@ class CheckList extends StatefulWidget {
 
 class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
   List<Task> tasks = [];
+  final TextEditingController _controller = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -39,6 +40,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _controller.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -84,9 +86,9 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
                       return await showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: Text('Delte Task'),
+                          title: Text('Delete Task'),
                           content: Text(
-                            "Are you sure you want to delte ${task.task}?",
+                            "Are you sure you want to delete ${task.task}?",
                           ),
                           actions: [
                             TextButton(
@@ -150,9 +152,8 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
           FloatingActionButtonLocation.miniStartDocked,
       floatingActionButton: FloatingActionButton.small(
         onPressed: () {
-          // ignore: no_leading_underscores_for_local_identifiers
-          final TextEditingController _controller = TextEditingController();
           setState(() {
+            _controller.clear();
             _showDialog(context, _controller);
           });
         },
