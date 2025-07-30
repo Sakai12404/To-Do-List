@@ -1,26 +1,21 @@
 workflows:
-  ios-build:
-    name: iOS Release Build
+  ios-release:
+    name: iOS Release
     environment:
       flutter: stable
       xcode: latest
-      cocoapods: default
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: 'main'
-          include: true
     scripts:
-      - name: Install dependencies
+      - name: Get dependencies
+        script: flutter pub get
+
+      - name: Build iOS archive
         script: |
-          flutter pub get
-      - name: Build iOS release
-        script: |
-          flutter build ios --release --no-codesign
+          flutter build ios --release
+
     artifacts:
       - build/ios/ipa/*.ipa
+
     publishing:
       email:
         recipients:
-          - your.email@example.com
+          - your@email.com
