@@ -49,7 +49,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
               itemCount: tasks.length,
               itemBuilder: (context, index) {
                 final task = tasks[index];
-                return _buildTaskBoxCheckListCard(task,index);
+                return _buildTaskBoxCheckListCard(task, index);
               },
             ),
           ),
@@ -83,7 +83,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
     });
   }
 
-  Card _buildTaskBoxCheckListCard(Task task,int index) {
+  Card _buildTaskBoxCheckListCard(Task task, int index) {
     return Card(
       color: Colors.black,
       child: Dismissible(
@@ -153,38 +153,41 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
   }
 
   // ignore: no_leading_underscores_for_local_identifiers
-  void _showTaskCreationScreen(BuildContext context,TextEditingController _controller) {
+  void _showTaskCreationScreen(BuildContext context,TextEditingController _controller,) {
     DateTime? selectedDate = DateTime.now();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text("Your task"),
-        content: Column(
-          children: [
-            TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Task',
+        content: IntrinsicHeight(
+          child: Column(
+            children: [
+              TextField(
+                maxLines: null,
+                controller: _controller,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Task',
+                ),
               ),
-            ),
-            const SizedBox(height: 5),
-            TextButton.icon(
-              icon: Icon(Icons.calendar_today_rounded),
-              label: Text(
-                "Due: ${selectedDate!.toLocal().toString().split(' ')[0]}",
+              const SizedBox(height: 5),
+              TextButton.icon(
+                icon: Icon(Icons.calendar_today_rounded),
+                label: Text(
+                  "Due: ${selectedDate!.toLocal().toString().split(' ')[0]}",
+                ),
+                onPressed: () async {
+                  selectedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime(2100),
+                  );
+                  setState(() => selectedDate ??= DateTime.now());
+                },
               ),
-              onPressed: () async {
-                selectedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime(2100),
-                );
-                setState(() => selectedDate ??= DateTime.now());
-              },
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
