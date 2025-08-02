@@ -11,7 +11,7 @@ Future<List<Task>> readTasks() async {
   try {
     final file = await getLocalFile();
     if (!await file.exists()) {
-      await file.create();
+      await file.create(recursive: true);
       return [];
     }
 
