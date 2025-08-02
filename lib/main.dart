@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:to_do_list/screen/checklist.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MainApp());
 }
 
