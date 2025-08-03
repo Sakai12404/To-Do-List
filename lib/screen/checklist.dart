@@ -9,7 +9,7 @@ class CheckList extends StatefulWidget {
 }
 
 class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
-  List<Task> tasks = [];
+  List<Task> tasks = [Task("hello wolrd", false, DateTime.now())];
   final TextEditingController _controller = TextEditingController();
   @override
   void initState() {
@@ -64,7 +64,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
         onPressed: () {
           setState(() {
             _controller.clear();
-            _showTaskCreationScreen(context, _controller);
+            _showTaskCreationScreen(context, _controller, true, null);
           });
         },
         child: const Icon(Icons.add),
@@ -72,9 +72,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
     );
   }
 
-  void saveTasks() async {
-    await saveToFile(tasks);
-  }
+  void saveTasks() async => await saveToFile(tasks);
 
   void loadTasks() async {
     final loaded = await readTasks();
@@ -88,15 +86,23 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
       color: Colors.black,
       child: Dismissible(
         background: Card(color: Colors.red, child: Icon(Icons.remove_circle)),
+        secondaryBackground: Card(
+          color: Colors.blue,
+          child: Icon(Icons.autorenew_rounded),
+        ),
         key: UniqueKey(),
         onDismissed: (DismissDirection direction) => setState(() {
           tasks.removeAt(index);
         }),
         confirmDismiss: (DismissDirection direction) async {
-          return await showDialog(
-            context: context,
-            builder: (context) => _buildConfirmationAlertDialog(task),
-          );
+          if (direction == DismissDirection.startToEnd) {
+            return await showDialog(
+              context: context,
+              builder: (context) => _buildConfirmationAlertDialog(task),
+            );
+          }
+          _showTaskCreationScreen(context, _controller, false, index);
+          return false;
         },
         child: _buildTaskBoxCheckList(task),
       ),
@@ -153,8 +159,17 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
   }
 
   // ignore: no_leading_underscores_for_local_identifiers
-  void _showTaskCreationScreen(BuildContext context,TextEditingController _controller,) {
-    DateTime? selectedDate = DateTime.now();
+  void _showTaskCreationScreen(
+    BuildContext context,
+    // ignore: no_leading_underscores_for_local_identifiers
+    TextEditingController _controller,
+    bool isAdd,
+    int? index,
+  ) {
+    Task? task = index == null ? null : tasks[index];
+    bool isTaskNull = task == null;
+    DateTime? selectedDate = isTaskNull ? DateTime.now() : task.dateTime;
+    ScrollController scrollContorler = ScrollController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -162,13 +177,22 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
         content: IntrinsicHeight(
           child: Column(
             children: [
-              TextField(
-                maxLines: null,
-                controller: _controller,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Task',
+              GestureDetector(
+                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: Scrollbar(
+                controller: scrollContorler,
+                child: TextField(
+                  minLines: 1,
+                  maxLines: 5,
+                  scrollController: scrollContorler,
+                  controller: _controller,
+                  keyboardType: TextInputType.multiline,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "Task:",
+                  ),
                 ),
+              ),
               ),
               const SizedBox(height: 5),
               TextButton.icon(
@@ -179,11 +203,16 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
                 onPressed: () async {
                   selectedDate = await showDatePicker(
                     context: context,
-                    initialDate: DateTime.now(),
+                    initialDate: !isTaskNull ? tasks[index!].dateTime : DateTime.now(),
                     firstDate: DateTime.now(),
-                    lastDate: DateTime(2100),
+                    lastDate: DateTime(2100),        
                   );
-                  setState(() => selectedDate ??= DateTime.now());
+                  setState((){
+                    if (selectedDate==null){
+                      if (isAdd) {selectedDate = tasks[index!].dateTime;}
+                      else {selectedDate = DateTime.now();}
+                    }
+                  });
                 },
               ),
             ],
@@ -195,8 +224,20 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
             onPressed: () {
               final input = _controller.text.trim();
               if (input.isNotEmpty) {
+                if (isAdd) {
+                  setState(() {
+                    tasks.add(Task(input, false, selectedDate!));
+                    tasks.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+                    Navigator.pop(context);
+                    return;
+                  });
+                }
                 setState(() {
-                  tasks.add(Task(input, false, selectedDate!));
+                  tasks[index!] = Task(
+                    input,
+                    tasks[index].isDone,
+                    selectedDate!,
+                  );
                   tasks.sort((a, b) => a.dateTime.compareTo(b.dateTime));
                 });
               }
