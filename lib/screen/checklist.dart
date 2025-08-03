@@ -101,7 +101,9 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
               builder: (context) => _buildConfirmationAlertDialog(task),
             );
           }
-          _showTaskCreationScreen(context, _controller, false, index);
+          setState(
+            () => _showTaskCreationScreen(context, _controller, false, index),
+          );
           return false;
         },
         child: _buildTaskBoxCheckList(task),
@@ -179,41 +181,48 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
             children: [
               GestureDetector(
                 onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-              child: Scrollbar(
-                controller: scrollContorler,
-                child: TextField(
-                  minLines: 1,
-                  maxLines: 5,
-                  scrollController: scrollContorler,
-                  controller: _controller,
-                  keyboardType: TextInputType.multiline,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Task:",
+                child: Scrollbar(
+                  controller: scrollContorler,
+                  child: TextField(
+                    minLines: 1,
+                    maxLines: 5,
+                    scrollController: scrollContorler,
+                    controller: _controller,
+                    keyboardType: TextInputType.multiline,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: "Task:",
+                    ),
                   ),
                 ),
               ),
-              ),
               const SizedBox(height: 5),
-              TextButton.icon(
-                icon: Icon(Icons.calendar_today_rounded),
-                label: Text(
-                  "Due: ${selectedDate!.toLocal().toString().split(' ')[0]}",
-                ),
-                onPressed: () async {
-                  selectedDate = await showDatePicker(
-                    context: context,
-                    initialDate: !isTaskNull ? tasks[index!].dateTime : DateTime.now(),
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2100),        
-                  );
-                  setState((){
-                    if (selectedDate==null){
-                      if (isAdd) {selectedDate = tasks[index!].dateTime;}
-                      else {selectedDate = DateTime.now();}
+              StatefulBuilder(
+                builder: (context, setState) => TextButton.icon(
+                  icon: Icon(Icons.calendar_today_rounded),
+                  label: Text(
+                    "Due: ${selectedDate!.toLocal().toString().split(' ')[0]}",
+                  ),
+                  onPressed: () async {
+                    DateTime? datePicked = await showDatePicker(
+                      context: context,
+                      initialDate: !isTaskNull
+                          ? tasks[index!].dateTime
+                          : DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime(2100),
+                    );
+
+                    if (datePicked == null) {
+                      if (isAdd) {
+                        datePicked = tasks[index!].dateTime;
+                      } else {
+                        datePicked = DateTime.now();
+                      }
                     }
-                  });
-                },
+                    setState(() => selectedDate = datePicked);
+                  },
+                ),
               ),
             ],
           ),
@@ -228,18 +237,17 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
                   setState(() {
                     tasks.add(Task(input, false, selectedDate!));
                     tasks.sort((a, b) => a.dateTime.compareTo(b.dateTime));
-                    Navigator.pop(context);
-                    return;
+                  });
+                } else {
+                  setState(() {
+                    tasks[index!] = Task(
+                      input,
+                      tasks[index].isDone,
+                      selectedDate!,
+                    );
+                    tasks.sort((a, b) => a.dateTime.compareTo(b.dateTime));
                   });
                 }
-                setState(() {
-                  tasks[index!] = Task(
-                    input,
-                    tasks[index].isDone,
-                    selectedDate!,
-                  );
-                  tasks.sort((a, b) => a.dateTime.compareTo(b.dateTime));
-                });
               }
               Navigator.pop(context);
             },
