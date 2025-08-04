@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+//import 'package:flutter/rendering.dart';
 import 'package:to_do_list/models/task.dart';
 import 'package:to_do_list/services/task_storage.dart';
 
@@ -101,7 +102,9 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
               builder: (context) => _buildConfirmationAlertDialog(task),
             );
           }
-          setState(() => _showTaskCreationScreen(context, _controller, false, index));
+          setState(
+            () => _showTaskCreationScreen(context, _controller, false, index),
+          );
           return false;
         },
         child: _buildTaskBoxCheckList(task),
@@ -110,9 +113,18 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
   }
 
   Widget _buildConfirmationAlertDialog(Task task) {
+    ScrollController scrollContorler = ScrollController();
     return AlertDialog(
       title: Text("Delete Task"),
-      content: Text("Are you sure you want to delete ${task.task}?"),
+      content: Expanded(
+        child: SingleChildScrollView(
+          controller: scrollContorler,
+          scrollDirection: Axis.vertical,
+          child: Text(
+            "Are you sure you want to delete ${task.task}?",
+          ),
+        ),
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
