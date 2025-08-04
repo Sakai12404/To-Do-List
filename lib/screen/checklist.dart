@@ -9,7 +9,7 @@ class CheckList extends StatefulWidget {
 }
 
 class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
-  List<Task> tasks = [Task("hello wolrd", false, DateTime.now())];
+  List<Task> tasks = [];
   final TextEditingController _controller = TextEditingController();
   @override
   void initState() {
@@ -101,9 +101,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
               builder: (context) => _buildConfirmationAlertDialog(task),
             );
           }
-          setState(
-            () => _showTaskCreationScreen(context, _controller, false, index),
-          );
+          setState(() => _showTaskCreationScreen(context, _controller, false, index));
           return false;
         },
         child: _buildTaskBoxCheckList(task),
@@ -236,7 +234,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
                 if (isAdd) {
                   setState(() {
                     tasks.add(Task(input, false, selectedDate!));
-                    tasks.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+                    sortTasks(tasks);
                   });
                 } else {
                   setState(() {
@@ -245,7 +243,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
                       tasks[index].isDone,
                       selectedDate!,
                     );
-                    tasks.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+                    sortTasks(tasks);
                   });
                 }
               }
@@ -260,4 +258,9 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
       ),
     );
   }
+}
+
+List<Task> sortTasks(List<Task> tasks) {
+  tasks.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+  return tasks;
 }
