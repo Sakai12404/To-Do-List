@@ -1,18 +1,24 @@
 workflows:
-  ios-workflow:
-    name: iOS Build
+  ios-release:
+    name: iOS Release Build
     environment:
+      vars:
+        FLUTTER_VERSION: stable
+        XCODE_WORKSPACE: Runner.xcworkspace
+        XCODE_SCHEME: Runner
       flutter: stable
       xcode: latest
     scripts:
-      - flutter clean
-      - flutter pub get
-      - flutter build ios --release
+      - name: Install dependencies
+        script: |
+          flutter clean
+          flutter pub get
+      - name: Build release for iOS
+        script: |
+          flutter build ios --release -v
     artifacts:
-      - build/ios/ipa/*.ipa
-
-
+      - build/ios/iphoneos/Runner.app
     publishing:
       email:
         recipients:
-          - nathansanchez745@email.com
+          - your-nathansanchez745@gmail.com
