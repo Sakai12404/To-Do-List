@@ -170,6 +170,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
     bool isTaskNull = task == null;
     DateTime? selectedDate = isTaskNull ? DateTime.now() : task.dateTime;
     ScrollController scrollContorler = ScrollController();
+    FocusNode textFieldFocusNode = FocusNode();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -186,6 +187,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
                     maxLines: 5,
                     scrollController: scrollContorler,
                     controller: _controller,
+                    focusNode: textFieldFocusNode,
                     keyboardType: TextInputType.multiline,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
