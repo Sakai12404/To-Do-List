@@ -17,6 +17,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     loadTasks();
+    tasks.add(Task("hello wolrd", false, DateTime.now()));
   }
 
   @override
@@ -120,9 +121,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
         child: SingleChildScrollView(
           controller: scrollContorler,
           scrollDirection: Axis.vertical,
-          child: Text(
-            "Are you sure you want to delete ${task.task}?",
-          ),
+          child: Text("Are you sure you want to delete ${task.task}?"),
         ),
       ),
       actions: [
@@ -140,23 +139,28 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
 
   Widget _buildTaskBoxCheckList(Task task) {
     return CheckboxListTile(
-      title: Text(
-        'Task: ${task.task}',
-        style: TextStyle(
-          color: Colors.white,
-          decoration: task.isDone ? TextDecoration.lineThrough : null,
-          decorationColor: Color.fromARGB(255, 234, 221, 255),
-          decorationThickness: 3.5,
-        ),
-      ),
-      subtitle: Text(
-        "Due: ${task.dateTime.toLocal().toString().split(' ')[0]}",
-        style: TextStyle(
-          color: Colors.white,
-          decoration: task.isDone ? TextDecoration.lineThrough : null,
-          decorationColor: Color.fromARGB(255, 234, 221, 255),
-          decorationThickness: 3.5,
-        ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SelectableText(
+            'Task: ${task.task}',
+            style: TextStyle(
+              color: Colors.white,
+              decoration: task.isDone ? TextDecoration.lineThrough : null,
+              decorationColor: Color.fromARGB(255, 234, 221, 255),
+              decorationThickness: 3.5,
+            ),
+          ),
+          SelectableText(
+            "Due: ${task.dateTime.toLocal().toString().split(' ')[0]}",
+            style: TextStyle(
+              color: Colors.white,
+              decoration: task.isDone ? TextDecoration.lineThrough : null,
+              decorationColor: Color.fromARGB(255, 234, 221, 255),
+              decorationThickness: 3.5,
+            ),
+          ),
+        ],
       ),
       value: task.isDone,
       controlAffinity: ListTileControlAffinity.leading,
