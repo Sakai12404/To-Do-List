@@ -98,9 +98,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
               builder: (context) => _buildConfirmationAlertDialog(task),
             );
           }
-          setState(
-            () => _showTaskCreationScreen(context, false, index),
-          );
+          setState(() => _showTaskCreationScreen(context, false, index));
           return false;
         },
         child: _buildTaskBoxCheckList(task),
@@ -147,7 +145,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
             ),
           ),
           SelectableText(
-            "Due: ${task.dateTime.toLocal().toString().split(' ')[0]}",
+            "Due: ${task.dateTime.toLocal().toString().split(' ')[0]} ${task.dueWhen == null ? "" : "at: ${task.dueWhen!.format(context)}"}",
             style: TextStyle(
               color: Colors.white,
               decoration: task.isDone ? TextDecoration.lineThrough : null,
@@ -169,17 +167,15 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
     );
   }
 
-  // ignore: no_leading_underscores_for_local_identifiers
-  void _showTaskCreationScreen(
-    BuildContext context,
-    bool isAdd,
-    int? index,
-  ) {
+  void _showTaskCreationScreen(BuildContext context, bool isAdd, int? index) {
     Task? task = index == null ? null : tasks[index];
     bool isTaskNull = task == null;
     DateTime? selectedDate = isTaskNull ? DateTime.now() : task.dateTime;
+    TimeOfDay? selectedTime = isTaskNull ? null : task.dueWhen;
     ScrollController scrollContorler = ScrollController();
-    TextEditingController controller = TextEditingController(text : isTaskNull ? null : task.task);
+    TextEditingController controller = TextEditingController(
+      text: isTaskNull ? null : task.task,
+    );
     FocusNode textFieldFocusNode = FocusNode();
     showDialog(
       context: context,
@@ -234,6 +230,30 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
                   },
                 ),
               ),
+              const SizedBox(height: 2.5),
+              StatefulBuilder(
+                builder: (context, setState) => selectedTime == null
+                    ? TextButton.icon(
+                        icon: Icon(Icons.add),
+                        label: Text("Add the hour due?"),
+                        onPressed: () =>setState(() => selectedTime = TimeOfDay.now()),
+                      )
+                    : TextButton.icon(
+                        icon: Icon(Icons.hourglass_bottom),
+                        label: Text("Due at: ${selectedTime!.format(context)}"),
+                        onPressed: () async {
+                          TimeOfDay? pickedHour = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                          );
+                          setState(() {
+                            if (pickedHour != null) {
+                              selectedTime = pickedHour;
+                            }
+                          });
+                        },
+                      ),
+              ),
             ],
           ),
         ),
@@ -245,7 +265,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
               if (input.isNotEmpty) {
                 if (isAdd) {
                   setState(() {
-                    tasks.add(Task(input, false, selectedDate!));
+                    tasks.add(Task(input, false, selectedDate!, selectedTime));
                     sortTasks(tasks);
                   });
                 } else {
@@ -254,6 +274,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
                       input,
                       tasks[index].isDone,
                       selectedDate!,
+                      selectedTime,
                     );
                     sortTasks(tasks);
                   });
