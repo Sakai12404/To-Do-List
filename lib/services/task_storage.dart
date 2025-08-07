@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:to_do_list/models/task.dart';
 import 'dart:io';
 import 'dart:convert';
+
 Future<File> getLocalFile() async {
   final directory = await getApplicationDocumentsDirectory(); // Safe for mobile
   return File('${directory.path}/to_do_list.json');
@@ -20,7 +22,14 @@ Future<List<Task>> readTasks() async {
     List<Task> loadedData = [];
     for (var i in decoded) {
       i as Map<String, dynamic>;
-      loadedData.add(Task(i["task"], i["complete"], DateTime.parse(i["due"])));
+      loadedData.add(
+        Task(
+          i["task"],
+          i["complete"],
+          DateTime.parse(i["due"]),
+          i["hour"] == null ? null : convertJSONtoTimeofDay(i["hour"]),
+        ),
+      );
     }
     return loadedData;
   } catch (e) {
@@ -36,7 +45,15 @@ Future<void> saveToFile(List<Task> tasks) async {
       "task": i.task,
       "complete": i.isDone,
       "due": i.dateTime.toIso8601String(),
+      "hour": i.dueWhen == null ? null : convertTimeOfDayToJSON(i.dueWhen!),
     });
   }
   await file.writeAsString(jsonEncode(toWrite));
 }
+
+Map<String, int> convertTimeOfDayToJSON(TimeOfDay timeOfDay) => {
+  'hour': timeOfDay.hour,
+  'minute': timeOfDay.minute,
+};
+TimeOfDay convertJSONtoTimeofDay(Map<String, int> jsonTimeofDay) =>
+    TimeOfDay(hour: jsonTimeofDay['hour']!, minute: jsonTimeofDay['minute']!);
