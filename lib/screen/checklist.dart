@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-//import 'package:flutter/rendering.dart';
 import 'package:to_do_list/models/task.dart';
 import 'package:to_do_list/services/task_storage.dart';
 
@@ -11,18 +10,15 @@ class CheckList extends StatefulWidget {
 
 class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
   List<Task> tasks = [];
-  final TextEditingController _controller = TextEditingController();
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     loadTasks();
-    tasks.add(Task("hello wolrd", false, DateTime.now()));
   }
 
   @override
   void dispose() {
-    _controller.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -65,8 +61,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
       floatingActionButton: FloatingActionButton.small(
         onPressed: () {
           setState(() {
-            _controller.clear();
-            _showTaskCreationScreen(context, _controller, true, null);
+            _showTaskCreationScreen(context, true, null);
           });
         },
         child: const Icon(Icons.add),
@@ -104,7 +99,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
             );
           }
           setState(
-            () => _showTaskCreationScreen(context, _controller, false, index),
+            () => _showTaskCreationScreen(context, false, index),
           );
           return false;
         },
@@ -177,8 +172,6 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
   // ignore: no_leading_underscores_for_local_identifiers
   void _showTaskCreationScreen(
     BuildContext context,
-    // ignore: no_leading_underscores_for_local_identifiers
-    TextEditingController _controller,
     bool isAdd,
     int? index,
   ) {
@@ -186,6 +179,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
     bool isTaskNull = task == null;
     DateTime? selectedDate = isTaskNull ? DateTime.now() : task.dateTime;
     ScrollController scrollContorler = ScrollController();
+    TextEditingController controller = TextEditingController(text : isTaskNull ? null : task.task);
     FocusNode textFieldFocusNode = FocusNode();
     showDialog(
       context: context,
@@ -202,7 +196,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
                     minLines: 1,
                     maxLines: 5,
                     scrollController: scrollContorler,
-                    controller: _controller,
+                    controller: controller,
                     focusNode: textFieldFocusNode,
                     keyboardType: TextInputType.multiline,
                     decoration: InputDecoration(
@@ -247,7 +241,7 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
           TextButton(
             child: Text("submit"),
             onPressed: () {
-              final input = _controller.text.trim();
+              final input = controller.text.trim();
               if (input.isNotEmpty) {
                 if (isAdd) {
                   setState(() {
