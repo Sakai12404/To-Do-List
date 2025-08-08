@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/models/task.dart';
 import 'package:to_do_list/services/task_storage.dart';
+import 'package:to_do_list/screen/recurringtasklist.dart';
 
-class CheckList extends StatefulWidget {
-  const CheckList({super.key});
+class SingleOcurringCheckList extends StatefulWidget {
+  const SingleOcurringCheckList({super.key});
   @override
-  State<CheckList> createState() => _CheckListState();
+  State<SingleOcurringCheckList> createState() => _SingleOcurringCheckListState();
 }
 
-class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
+class _SingleOcurringCheckListState extends State<SingleOcurringCheckList> with WidgetsBindingObserver {
   List<Task> tasks = [];
   @override
   void initState() {
@@ -39,6 +40,16 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
       appBar: AppBar(
         title: Text("To Do List", style: TextStyle(color: Colors.black)),
         centerTitle: true,
+        actions: <Widget> [
+          IconButton(
+            padding: EdgeInsets.all(10.0),
+            icon : Icon(Icons.next_plan_outlined),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RecurringTaskList()),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -69,10 +80,10 @@ class _CheckListState extends State<CheckList> with WidgetsBindingObserver {
     );
   }
 
-  void saveTasks() async => await saveToFile(tasks);
+  void saveTasks() async => await saveToFile(tasks, "single_occurence_list");
 
   void loadTasks() async {
-    final loaded = await readTasks();
+    final loaded = await readTasks("single_occurence_list");
     setState(() {
       tasks = loaded;
     });

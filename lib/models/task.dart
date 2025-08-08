@@ -5,5 +5,6 @@ class Task {
   bool isDone;
   DateTime dateTime;
   TimeOfDay? dueWhen;
-  Task(this.task, this.isDone, this.dateTime, [this.dueWhen]);
+  List<bool>? whenInWeek;
+  Task(this.task, this.isDone, this.dateTime, this.dueWhen, [this.whenInWeek]);
 }

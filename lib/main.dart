@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:to_do_list/screen/checklist.dart';
+import 'package:to_do_list/screen/singleocurringtasklist.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +12,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       home: SafeArea(
-        child: CheckList(),
+        child: SingleOcurringCheckList(),
       ),
     );
   }
