@@ -303,8 +303,3 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList> with 
     );
   }
 }
-
-List<Task> sortTasks(List<Task> tasks) {
-  tasks.sort((a, b) => a.dateTime.compareTo(b.dateTime));
-  return tasks;
-}
