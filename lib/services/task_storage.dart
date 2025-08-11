@@ -20,7 +20,7 @@ Future<List<Task>> readTasks(String fileName) async {
     final contents = await file.readAsString();
     final List<dynamic> decoded = jsonDecode(contents);
     List<Task> loadedData = [];
-    if (fileName == 'single_occurence_list.json') {
+    if (fileName == 'single_occurence_list') {
       for (var i in decoded) {
         i as Map<String, dynamic>;
         loadedData.add(

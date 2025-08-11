@@ -9,7 +9,7 @@ class RecurringTaskList extends StatefulWidget {
   State<RecurringTaskList> createState() => _RecuringTaskList();
 }
 
-class _RecuringTaskList extends State<RecurringTaskList> {
+class _RecuringTaskList extends State<RecurringTaskList> with RouteAware {
   List<Task> tasks = [];
   Map<String, List<Task>> sortedTasksbyDay = {
     "monday": [],
@@ -29,52 +29,111 @@ class _RecuringTaskList extends State<RecurringTaskList> {
     "saturday",
     "sunday",
   ];
+  bool viewingToday = false;
+
   @override
   void initState() {
     super.initState();
+    print("here in the second page");
     loadTasks();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    //RouteObserver.subscribe(this, ModalRoute.of(context));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  void didPop() {
+    super.didPop();
+    saveTasks();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Daily tasks")),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: 7,
-              itemBuilder: (context, index) {
-                final day = indexToDay[index];
-                return Column(
-                  children: [
-                    Text(day,style: TextStyle(fontSize: 25.0, color: Colors.black,fontWeight: FontWeight.bold)),
-                    sortedTasksbyDay[day]!.isNotEmpty
-                        ? ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: sortedTasksbyDay[day]!.length,
-                            itemBuilder: (context, a) {
-                              final task = sortedTasksbyDay[day]![a];
-                              return _createCard(task, a);
-                            },
-                          )
-                        : Text("Nothing in $day"),
-                  ],
-                );
-              },
-            ),
+      appBar: AppBar(
+        title: Text("Daily tasks"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.today),
+            onPressed: () {
+              setState(() => viewingToday = !viewingToday);
+            },
+            tooltip: "View todays tasks and opposite",
           ),
         ],
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            viewingToday
+                ? _dailyBuilder(indexToDay[DateTime.now().weekday - 1])
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: 7,
+                      itemBuilder: (context, index) {
+                        final day = indexToDay[index];
+                        return _dailyBuilder(day);
+                      },
+                    ),
+                  ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.small(
         child: Icon(Icons.add),
         onPressed: () async =>
             await _showTaskCreationScreen(context, true, null),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniStartDocked,
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.miniStartDocked,
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
+      ),
+    );
+  }
+
+  Widget _dailyBuilder(String day) {
+    return Padding(
+      padding: EdgeInsetsGeometry.all(6),
+      child: Column(
+        children: [
+          Card(
+            color: Colors.black,
+            child: Padding(
+              padding: EdgeInsetsGeometry.all(8),
+              child: Text(
+                "${day[0].toUpperCase()}${day.substring(1, day.length)}",
+                style: TextStyle(
+                  fontSize: 25.0,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          sortedTasksbyDay[day]!.isNotEmpty
+              ? ListView.builder(
+                  physics: NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: sortedTasksbyDay[day]!.length,
+                  itemBuilder: (context, a) {
+                    final task = sortedTasksbyDay[day]![a];
+                    return _createCard(task, a);
+                  },
+                )
+              : Text(
+                  "Nothing in $day",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+        ],
       ),
     );
   }
@@ -131,6 +190,8 @@ class _RecuringTaskList extends State<RecurringTaskList> {
                 days: days,
                 onSelect: (days) => print(days),
                 backgroundColor: Colors.black87,
+                fontSize: 10.25,
+                fontWeight: FontWeight.bold,
                 boxDecoration: BoxDecoration(
                   color: Colors.black,
                   border: BoxBorder.all(width: 8.0),
@@ -169,7 +230,14 @@ class _RecuringTaskList extends State<RecurringTaskList> {
             child: Text("submit"),
             onPressed: () {
               final input = controller.text.trim();
-              if (input.isNotEmpty) {
+              bool isValid = false;
+              for (var i in days) {
+                if (i.isSelected) {
+                  isValid = true;
+                  break;
+                }
+              }
+              if (input.isNotEmpty && isValid) {
                 if (isAdd) {
                   setState(() {
                     tasks.add(
@@ -229,7 +297,7 @@ class _RecuringTaskList extends State<RecurringTaskList> {
             task.dueWhen == null
                 ? Text("")
                 : SelectableText(
-                    "Due: ${task.dueWhen!.hour}",
+                    "Due: ${task.dueWhen!.hourOfPeriod}:${task.dueWhen!.minute} ${task.dueWhen!.period.toString().substring(10,12)}",
                     style: TextStyle(
                       color: Colors.white,
                       decoration: task.isDone

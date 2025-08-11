@@ -104,10 +104,7 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList> with 
         }),
         confirmDismiss: (DismissDirection direction) async {
           if (direction == DismissDirection.startToEnd) {
-            return await showDialog(
-              context: context,
-              builder: (context) => _buildConfirmationAlertDialog(task),
-            );
+            return await _buildConfirmationAlertDialog(task);
           }
           setState(() => _showTaskCreationScreen(context, false, index));
           return false;
@@ -117,9 +114,11 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList> with 
     );
   }
 
-  Widget _buildConfirmationAlertDialog(Task task) {
+  Future<bool> _buildConfirmationAlertDialog(Task task) async {
     ScrollController scrollContorler = ScrollController();
-    return AlertDialog(
+    return await showDialog(
+      context: context,
+      builder:(context) => AlertDialog(
       title: Text("Delete Task"),
       content: Expanded(
         child: SingleChildScrollView(
@@ -138,7 +137,7 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList> with 
           child: Text("confirm"),
         ),
       ],
-    );
+    ),);
   }
 
   Widget _buildTaskBoxCheckList(Task task) {
