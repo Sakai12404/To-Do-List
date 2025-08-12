@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/screen/singleocurringtasklist.dart';
-import 'package:to_do_list/screen/recurringtasklist.dart';
-import 'package:to_do_list/screen/singleocurringtasklist.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MainApp());
