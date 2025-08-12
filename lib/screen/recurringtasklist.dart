@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:to_do_list/models/task.dart';
 import 'package:to_do_list/services/task_storage.dart';
 import 'package:day_picker/day_picker.dart';
+import 'package:to_do_list/main.dart';
 
 class RecurringTaskList extends StatefulWidget {
   const RecurringTaskList({super.key});
@@ -9,7 +10,8 @@ class RecurringTaskList extends StatefulWidget {
   State<RecurringTaskList> createState() => _RecuringTaskList();
 }
 
-class _RecuringTaskList extends State<RecurringTaskList> with RouteAware {
+class _RecuringTaskList extends State<RecurringTaskList>
+    with RouteAware, WidgetsBindingObserver {
   List<Task> tasks = [];
   Map<String, List<Task>> sortedTasksbyDay = {
     "monday": [],
@@ -30,29 +32,56 @@ class _RecuringTaskList extends State<RecurringTaskList> with RouteAware {
     "sunday",
   ];
   bool viewingToday = false;
-
   @override
   void initState() {
     super.initState();
-    print("here in the second page");
     loadTasks();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    //RouteObserver.subscribe(this, ModalRoute.of(context));
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
   void dispose() {
+    //WidgetsBinding.instance.removeObserver(this);
+    routeObserver.unsubscribe(this);
     super.dispose();
   }
 
   @override
-  void didPop() {
-    super.didPop();
+  void didPushNext() {
+    // Going forward to another page
     saveTasks();
+    print("Saved tasks before leaving page");
+  }
+
+  @override
+  void didPop() {
+    // This page itself is being closed
+    saveTasks();
+    print("Saved tasks before page closed");
+  }
+
+  @override
+  void didPopNext() {
+    // Coming back from another page
+    saveTasks(); // <-- You can also save here if needed
+    print("Saved tasks after coming back");
+  }
+
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      saveTasks();
+      return;
+    }
   }
 
   @override
@@ -297,7 +326,7 @@ class _RecuringTaskList extends State<RecurringTaskList> with RouteAware {
             task.dueWhen == null
                 ? Text("")
                 : SelectableText(
-                    "Due: ${task.dueWhen!.hourOfPeriod}:${task.dueWhen!.minute} ${task.dueWhen!.period.toString().substring(10,12)}",
+                    "Due: ${task.dueWhen!.hourOfPeriod}:${task.dueWhen!.minute} ${task.dueWhen!.period.toString().substring(10, 12)}",
                     style: TextStyle(
                       color: Colors.white,
                       decoration: task.isDone
@@ -321,10 +350,11 @@ class _RecuringTaskList extends State<RecurringTaskList> with RouteAware {
 
   void loadTasks() async {
     tasks = await readTasks("multiple_occurence_list");
-    sortedTasksbyDay = formatMultipleOcurrenceTasks(tasks);
+    print(tasks);
+    setState(()=>sortedTasksbyDay = formatMultipleOcurrenceTasks(tasks));
   }
 
-  void saveTasks() async => saveToFile(tasks, "multiple_occurence_list");
+  void saveTasks() async => await saveToFile(tasks, "multiple_occurence_list");
 }
 
 List<bool> convertDaysOfWeek(List<DayInWeek> days) {

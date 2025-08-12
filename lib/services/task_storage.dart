@@ -19,8 +19,8 @@ Future<List<Task>> readTasks(String fileName) async {
 
     final contents = await file.readAsString();
     final List<dynamic> decoded = jsonDecode(contents);
+    print(decoded);
     List<Task> loadedData = [];
-    if (fileName == 'single_occurence_list') {
       for (var i in decoded) {
         i as Map<String, dynamic>;
         loadedData.add(
@@ -30,12 +30,11 @@ Future<List<Task>> readTasks(String fileName) async {
             fileName == "single_occurence_list"
                 ? DateTime.parse(i["due"])
                 : DateTime.now(),
-            i["hour"] == null ? null : convertJSONtoTimeofDay(i["hour"]),
-            fileName == "single_occurence_list" ? null : i["week"],
+            i["hour"] == null ? null : convertJSONtoTimeofDay(Map<String,int>.from(i["hour"])),
+            fileName == "single_occurence_list" ? null : List<bool>.from(i["week"].map((e) => e as bool).toList()),
           ),
         );
       }
-    }
     return loadedData;
   } catch (e) {
     return [];
