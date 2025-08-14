@@ -3,6 +3,8 @@ import 'package:to_do_list/models/task.dart';
 import 'package:to_do_list/services/task_storage.dart';
 import 'package:day_picker/day_picker.dart';
 import 'package:to_do_list/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:to_do_list/widgets/checkboxlist.dart';
 
 class RecurringTaskList extends StatefulWidget {
   const RecurringTaskList({super.key});
@@ -310,51 +312,33 @@ class _RecuringTaskList extends State<RecurringTaskList>
   Widget _createCard(Task task, int index) {
     return Card(
       color: Colors.black,
-      child: CheckboxListTile(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SelectableText(
-              'Task: ${task.task}',
-              style: TextStyle(
-                color: Colors.white,
-                decoration: task.isDone ? TextDecoration.lineThrough : null,
-                decorationColor: Color.fromARGB(255, 234, 221, 255),
-                decorationThickness: 3.5,
-              ),
-            ),
-            task.dueWhen == null
-                ? Text("")
-                : SelectableText(
-                    "Due: ${task.dueWhen!.hourOfPeriod}:${task.dueWhen!.minute} ${task.dueWhen!.period.toString().substring(10, 12)}",
-                    style: TextStyle(
-                      color: Colors.white,
-                      decoration: task.isDone
-                          ? TextDecoration.lineThrough
-                          : null,
-                      decorationColor: Color.fromARGB(255, 234, 221, 255),
-                      decorationThickness: 3.5,
-                    ),
-                  ),
-          ],
-        ),
-        controlAffinity: ListTileControlAffinity.leading,
-        value: task.isDone,
-        activeColor: Colors.white,
-        checkColor: Color.fromARGB(255, 79, 57, 140),
-        onChanged: (bool? value) =>
-            setState(() => task.isDone = value ?? false),
-      ),
+      child: CheckBoxlist(task: task, isRecurring: true),
     );
   }
 
   void loadTasks() async {
+    //bool differentDay = false;
     tasks = await readTasks("multiple_occurence_list");
     print(tasks);
+    final prefs = await SharedPreferences.getInstance();
+    final lastOpenedStr = prefs.getString("last_opened_app");
+    final today = DateTime.now();
+    if (lastOpenedStr != null){
+      final lastOpened = DateTime.parse(lastOpenedStr);
+      if (lastOpened.day != today.day || lastOpened.month != today.month || lastOpened.year != today.year) {
+        for (Task i in tasks) {
+          i.isDone = false;
+        }
+      }
+    }
     setState(()=>sortedTasksbyDay = formatMultipleOcurrenceTasks(tasks));
   }
 
-  void saveTasks() async => await saveToFile(tasks, "multiple_occurence_list");
+  void saveTasks() async { 
+    await saveToFile(tasks, "multiple_occurence_list");
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString("last_opened_app", DateTime.now().toIso8601String());
+  }
 }
 
 List<bool> convertDaysOfWeek(List<DayInWeek> days) {

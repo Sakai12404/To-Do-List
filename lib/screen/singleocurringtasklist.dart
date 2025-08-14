@@ -3,6 +3,7 @@ import 'package:to_do_list/models/task.dart';
 import 'package:to_do_list/services/task_storage.dart';
 import 'package:to_do_list/screen/recurringtasklist.dart';
 import 'package:to_do_list/main.dart';
+import 'package:to_do_list/widgets/checkboxlist.dart';
 
 class SingleOcurringCheckList extends StatefulWidget {
   const SingleOcurringCheckList({super.key});
@@ -140,7 +141,7 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList>
           setState(() => _showTaskCreationScreen(context, false, index));
           return false;
         },
-        child: _buildTaskBoxCheckList(task),
+        child: CheckBoxlist(task: task, isRecurring: false),
       ),
     );
   }
@@ -172,42 +173,7 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList>
     );
   }
 
-  Widget _buildTaskBoxCheckList(Task task) {
-    return CheckboxListTile(
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SelectableText(
-            'Task: ${task.task}',
-            style: TextStyle(
-              color: Colors.white,
-              decoration: task.isDone ? TextDecoration.lineThrough : null,
-              decorationColor: Color.fromARGB(255, 234, 221, 255),
-              decorationThickness: 3.5,
-            ),
-          ),
-          SelectableText(
-            "Due: ${task.dateTime.toLocal().toString().split(' ')[0]} ${task.dueWhen == null ? "" : "at: ${task.dueWhen!.format(context)}"}",
-            style: TextStyle(
-              color: Colors.white,
-              decoration: task.isDone ? TextDecoration.lineThrough : null,
-              decorationColor: Color.fromARGB(255, 234, 221, 255),
-              decorationThickness: 3.5,
-            ),
-          ),
-        ],
-      ),
-      value: task.isDone,
-      controlAffinity: ListTileControlAffinity.leading,
-      activeColor: Colors.white,
-      checkColor: Color.fromARGB(255, 79, 57, 140),
-      onChanged: (bool? value) {
-        setState(() {
-          task.isDone = value ?? false;
-        });
-      },
-    );
-  }
+  
 
   void _showTaskCreationScreen(BuildContext context, bool isAdd, int? index) {
     Task? task = index == null ? null : tasks[index];
