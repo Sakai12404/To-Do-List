@@ -180,9 +180,11 @@ class _RecuringTaskList extends State<RecurringTaskList>
             if (isAdd) {
               tasks.add(task);
               sortTasks(tasks);
+              sortedTasksbyDay = formatMultipleOcurrenceTasks(tasks);
             } else {
               tasks[index!] = task;
               sortTasks(tasks);
+              sortedTasksbyDay = formatMultipleOcurrenceTasks(tasks);
             }
           });
         },

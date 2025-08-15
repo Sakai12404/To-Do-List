@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 class Task {
+  String? id;
   String task;
   bool isDone;
   DateTime dateTime;
   TimeOfDay? dueWhen;
   List<bool>? whenInWeek;
-  Task(this.task, this.isDone, this.dateTime, this.dueWhen, [this.whenInWeek]);
+  Task(this.task, this.isDone, this.dateTime, this.dueWhen, [this.whenInWeek, this.id]);
 }

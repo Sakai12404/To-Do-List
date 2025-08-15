@@ -5,6 +5,7 @@ import 'package:to_do_list/screen/recurringtasklist.dart';
 import 'package:to_do_list/main.dart';
 import 'package:to_do_list/widgets/checkboxlist.dart';
 import 'package:to_do_list/widgets/taskcreation.dart';
+import 'package:uuid/uuid.dart';
 
 class SingleOcurringCheckList extends StatefulWidget {
   const SingleOcurringCheckList({super.key});
@@ -19,7 +20,7 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList>
   @override
   void initState() {
     super.initState();
-    loadTasks();
+    //loadTasks();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -113,15 +114,6 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList>
     );
   }
 
-  void saveTasks() async => await saveToFile(tasks, "single_occurence_list");
-
-  void loadTasks() async {
-    final loaded = await readTasks("single_occurence_list");
-    setState(() {
-      tasks = loaded;
-    });
-  }
-
   Card _buildTaskBoxCheckListCard(Task task, int index) {
     return Card(
       color: Colors.black,
@@ -131,15 +123,16 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList>
           color: Colors.blue,
           child: Icon(Icons.autorenew_rounded),
         ),
-        key: UniqueKey(),
+        key: Key(task.id!),
         onDismissed: (DismissDirection direction) => setState(() {
-          tasks.removeAt(index);
+          tasks.removeWhere((t) => t.id == task.id);
+          saveTasks();
         }),
         confirmDismiss: (DismissDirection direction) async {
           if (direction == DismissDirection.startToEnd) {
             return await _buildConfirmationAlertDialog(task);
           }
-          setState(() => _showTaskCreationScreen(context, false, index));
+          _showTaskCreationScreen(context, false, index);
           return false;
         },
         child: CheckBoxlist(task: task, isRecurring: false),
@@ -153,13 +146,11 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList>
       context: context,
       builder: (context) => AlertDialog(
         title: Text("Delete Task"),
-        content: Expanded(
-          child: SingleChildScrollView(
+        content: SingleChildScrollView(
             controller: scrollContorler,
             scrollDirection: Axis.vertical,
             child: Text("Are you sure you want to delete ${task.task}?"),
           ),
-        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -176,6 +167,7 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList>
 
   void _showTaskCreationScreen(BuildContext context, bool isAdd, int? index) {
     Task? task = index == null ? null : tasks[index];
+    String id = isAdd ? Uuid().v4() : task!.id!; 
     showDialog(
       context: context,
       builder: (context) => TaskCreation(
@@ -185,9 +177,11 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList>
         onSubmit: (task) {
           setState(() {
             if (isAdd) {
+              task.id = id;
               tasks.add(task);
               sortTasks(tasks);
             } else {
+              task.id = id;
               tasks[index!] = task;
               sortTasks(tasks);
             }
@@ -195,5 +189,14 @@ class _SingleOcurringCheckListState extends State<SingleOcurringCheckList>
         },
       ),
     );
+  }
+
+  void saveTasks() async => await saveToFile(tasks, "single_occurence_list");
+
+  void loadTasks() async {
+    final loaded = await readTasks("single_occurence_list");
+    setState(() {
+      tasks = loaded;
+    });
   }
 }

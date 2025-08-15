@@ -20,20 +20,25 @@ Future<List<Task>> readTasks(String fileName) async {
     final contents = await file.readAsString();
     final List<dynamic> decoded = jsonDecode(contents);
     List<Task> loadedData = [];
-      for (var i in decoded) {
-        i as Map<String, dynamic>;
-        loadedData.add(
-          Task(
-            i["task"],
-            i["complete"],
-            fileName == "single_occurence_list"
-                ? DateTime.parse(i["due"])
-                : DateTime.now(),
-            i["hour"] == null ? null : convertJSONtoTimeofDay(Map<String,int>.from(i["hour"])),
-            fileName == "single_occurence_list" ? null : List<bool>.from(i["week"].map((e) => e as bool).toList()),
-          ),
-        );
-      }
+    for (var i in decoded) {
+      i as Map<String, dynamic>;
+      loadedData.add(
+        Task(
+          i["task"],
+          i["complete"],
+          fileName == "single_occurence_list"
+              ? DateTime.parse(i["due"])
+              : DateTime.now(),
+          i["hour"] == null
+              ? null
+              : convertJSONtoTimeofDay(Map<String, int>.from(i["hour"])),
+          fileName == "single_occurence_list"
+              ? null
+              : List<bool>.from(i["week"].map((e) => e as bool).toList()),
+          i["id"],
+        ),
+      );
+    }
     return loadedData;
   } catch (e) {
     return [];
@@ -52,6 +57,7 @@ Future<void> saveToFile(List<Task> tasks, String fileName) async {
           : null,
       "hour": i.dueWhen == null ? null : convertTimeOfDayToJSON(i.dueWhen!),
       "week": fileName == "single_occurence_list" ? null : i.whenInWeek,
+      "id": i.id,
     });
   }
   await file.writeAsString(jsonEncode(toWrite));
@@ -79,12 +85,22 @@ Map<String, List<Task>> formatMultipleOcurrenceTasks(List<Task> tasks) {
     5: "saturday",
     6: "sunday",
   };
-  Map<String, List<Task>> formating = {"monday": [], "tuesday": [], "wensday": [], "thursday": [], "friday": [], "saturday": [], "sunday": []};
+  Map<String, List<Task>> formating = {
+    "monday": [],
+    "tuesday": [],
+    "wensday": [],
+    "thursday": [],
+    "friday": [],
+    "saturday": [],
+    "sunday": [],
+  };
   for (Task i in tasks) {
     List<bool> whenInWeek = i.whenInWeek!;
     for (int a = 0; a < whenInWeek.length; a++) {
       if (!whenInWeek[a]) continue;
-      formating[dayToIndex[a]!]!.add(Task(i.task, i.isDone, DateTime.now(),i.dueWhen,i.whenInWeek));
+      formating[dayToIndex[a]!]!.add(
+        Task(i.task, i.isDone, DateTime.now(), i.dueWhen, i.whenInWeek),
+      );
     }
   }
   return formating;
