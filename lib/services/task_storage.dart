@@ -19,7 +19,6 @@ Future<List<Task>> readTasks(String fileName) async {
 
     final contents = await file.readAsString();
     final List<dynamic> decoded = jsonDecode(contents);
-    print(decoded);
     List<Task> loadedData = [];
       for (var i in decoded) {
         i as Map<String, dynamic>;
