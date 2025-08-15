@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list/models/task.dart';
 import 'package:to_do_list/services/task_storage.dart';
-import 'package:day_picker/day_picker.dart';
 import 'package:to_do_list/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:to_do_list/widgets/checkboxlist.dart';
+import 'package:to_do_list/widgets/taskcreation.dart';
 
 class RecurringTaskList extends StatefulWidget {
   const RecurringTaskList({super.key});
@@ -58,24 +58,23 @@ class _RecuringTaskList extends State<RecurringTaskList>
   void didPushNext() {
     // Going forward to another page
     saveTasks();
-    print("Saved tasks before leaving page");
+    //print("Saved tasks before leaving page");
   }
 
   @override
   void didPop() {
     // This page itself is being closed
     saveTasks();
-    print("Saved tasks before page closed");
+    //print("Saved tasks before page closed");
   }
 
   @override
   void didPopNext() {
     // Coming back from another page
     saveTasks(); // <-- You can also save here if needed
-    print("Saved tasks after coming back");
+    //print("Saved tasks after coming back");
   }
 
-  
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -120,8 +119,7 @@ class _RecuringTaskList extends State<RecurringTaskList>
       ),
       floatingActionButton: FloatingActionButton.small(
         child: Icon(Icons.add),
-        onPressed: () async =>
-            await _showTaskCreationScreen(context, true, null),
+        onPressed: () => _showTaskCreationScreen(context, true, null),
       ),
       floatingActionButtonLocation:
           FloatingActionButtonLocation.miniStartDocked,
@@ -169,142 +167,25 @@ class _RecuringTaskList extends State<RecurringTaskList>
     );
   }
 
-  Future<void> _showTaskCreationScreen(
-    BuildContext context,
-    bool isAdd,
-    int? index,
-  ) async {
+  void _showTaskCreationScreen(BuildContext context, bool isAdd, int? index) {
     Task? task = isAdd ? null : tasks[index!];
-    ScrollController scrollContorler = ScrollController();
-    TextEditingController controller = TextEditingController(
-      text: isAdd ? null : task!.task,
-    );
-    TimeOfDay? selectedTime = isAdd ? null : task!.dueWhen;
-    List<DayInWeek> days = [
-      DayInWeek("Mon", dayKey: "monday"),
-      DayInWeek("Tues", dayKey: "tuesday"),
-      DayInWeek("Wens", dayKey: "wednesday"),
-      DayInWeek("Thurs", dayKey: "thursday"),
-      DayInWeek("Fri", dayKey: "friday"),
-      DayInWeek("Sat", dayKey: "saturday"),
-      DayInWeek("Sun", dayKey: "sunday"),
-    ];
-    FocusNode textFieldFocusNode = FocusNode();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Task"),
-        content: IntrinsicHeight(
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-                child: Scrollbar(
-                  controller: scrollContorler,
-                  child: TextField(
-                    minLines: 1,
-                    maxLines: 5,
-                    controller: controller,
-                    scrollController: scrollContorler,
-                    focusNode: textFieldFocusNode,
-                    keyboardType: TextInputType.multiline,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      label: Text("task"),
-                    ),
-                  ),
-                ),
-              ),
-
-              Text("Select days when task is needed to be complete"),
-              SelectWeekDays(
-                days: days,
-                onSelect: (days) => print(days),
-                backgroundColor: Colors.black87,
-                fontSize: 10.25,
-                fontWeight: FontWeight.bold,
-                boxDecoration: BoxDecoration(
-                  color: Colors.black,
-                  border: BoxBorder.all(width: 8.0),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              StatefulBuilder(
-                builder: (context, setState) => selectedTime == null
-                    ? TextButton.icon(
-                        icon: Icon(Icons.add),
-                        label: Text("Add the hour due?"),
-                        onPressed: () =>
-                            setState(() => selectedTime = TimeOfDay.now()),
-                      )
-                    : TextButton.icon(
-                        icon: Icon(Icons.hourglass_bottom),
-                        label: Text("Due at: ${selectedTime!.format(context)}"),
-                        onPressed: () async {
-                          TimeOfDay? pickedHour = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.now(),
-                          );
-                          setState(() {
-                            if (pickedHour != null) {
-                              selectedTime = pickedHour;
-                            }
-                          });
-                        },
-                      ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            child: Text("submit"),
-            onPressed: () {
-              final input = controller.text.trim();
-              bool isValid = false;
-              for (var i in days) {
-                if (i.isSelected) {
-                  isValid = true;
-                  break;
-                }
-              }
-              if (input.isNotEmpty && isValid) {
-                if (isAdd) {
-                  setState(() {
-                    tasks.add(
-                      Task(
-                        input,
-                        false,
-                        DateTime.now(),
-                        selectedTime,
-                        convertDaysOfWeek(days),
-                      ),
-                    );
-                    sortTasks(tasks);
-                    sortedTasksbyDay = formatMultipleOcurrenceTasks(tasks);
-                  });
-                } else {
-                  setState(() {
-                    tasks[index!] = Task(
-                      input,
-                      tasks[index].isDone,
-                      DateTime.now(),
-                      selectedTime,
-                      convertDaysOfWeek(days),
-                    );
-                    sortTasks(tasks);
-                    sortedTasksbyDay = formatMultipleOcurrenceTasks(tasks);
-                  });
-                }
-              }
-              Navigator.pop(context);
-            },
-          ),
-          TextButton(
-            child: Text("cancel"),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
+      builder: (context) => TaskCreation(
+        isAdd: isAdd,
+        isRecurring: true,
+        task: isAdd ? null : task!,
+        onSubmit: (task) {
+          setState(() {
+            if (isAdd) {
+              tasks.add(task);
+              sortTasks(tasks);
+            } else {
+              tasks[index!] = task;
+              sortTasks(tasks);
+            }
+          });
+        },
       ),
     );
   }
@@ -319,32 +200,25 @@ class _RecuringTaskList extends State<RecurringTaskList>
   void loadTasks() async {
     //bool differentDay = false;
     tasks = await readTasks("multiple_occurence_list");
-    print(tasks);
     final prefs = await SharedPreferences.getInstance();
     final lastOpenedStr = prefs.getString("last_opened_app");
     final today = DateTime.now();
-    if (lastOpenedStr != null){
+    if (lastOpenedStr != null) {
       final lastOpened = DateTime.parse(lastOpenedStr);
-      if (lastOpened.day != today.day || lastOpened.month != today.month || lastOpened.year != today.year) {
+      if (lastOpened.day != today.day ||
+          lastOpened.month != today.month ||
+          lastOpened.year != today.year) {
         for (Task i in tasks) {
           i.isDone = false;
         }
       }
     }
-    setState(()=>sortedTasksbyDay = formatMultipleOcurrenceTasks(tasks));
+    setState(() => sortedTasksbyDay = formatMultipleOcurrenceTasks(tasks));
   }
 
-  void saveTasks() async { 
+  void saveTasks() async {
     await saveToFile(tasks, "multiple_occurence_list");
     final prefs = await SharedPreferences.getInstance();
     prefs.setString("last_opened_app", DateTime.now().toIso8601String());
   }
-}
-
-List<bool> convertDaysOfWeek(List<DayInWeek> days) {
-  List<bool> daysInWeek = [];
-  for (var i in days) {
-    daysInWeek.add(i.isSelected);
-  }
-  return daysInWeek;
 }
